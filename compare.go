@@ -21,7 +21,7 @@ type DataComparism struct {
 
 func NewDataComparism() *DataComparism {
 	return &DataComparism{
-		Checksums: make([]string, 2, 2),
+		Checksums: make([]string, 2),
 		vm: lua.NewState(lua.Options{
 			MinimizeStackMemory: true,
 		}),
@@ -135,4 +135,8 @@ end
 		return false, errors.New("logic error")
 	}
 	return ret == lua.LTrue, nil
+}
+
+func (c *DataComparism) Close() {
+	c.vm.Close()
 }

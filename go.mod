@@ -1,4 +1,4 @@
-module future.net.co.luatools
+module github.com/deflinhec/luatools
 
 go 1.17
 

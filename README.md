@@ -2,6 +2,12 @@
 
 Lua 工具集
 
+## 安裝
+
+```
+go get -u github.com/deflinhec/luatools
+```
+
 ## 編譯
 
 編譯細節可以參考 [Makefile](./Makefile)。

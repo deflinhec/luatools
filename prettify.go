@@ -45,11 +45,15 @@ func (d *DataPrettify) Load(filename string) error {
 	name := filepath.Base(filename)
 	name = strings.ReplaceAll(name, filepath.Ext(name), "")
 	name = regexp.MustCompile("[^A-Z|a-z]").ReplaceAllString(name, "")
-	data := d.vm.GetGlobal("Data").(*lua.LTable).RawGet(lua.LString(name))
+	ltable, ok := d.vm.GetGlobal("Data").(*lua.LTable)
+	if ok {
+		return fmt.Errorf("global variable %v is not a table", "Data")
+	}
+	data := ltable.RawGet(lua.LString(name))
 	if data == lua.LNil {
-		return fmt.Errorf("key %v is NilType", name)
+		return fmt.Errorf("%v is nil", fmt.Sprintf("Data.%v", name))
 	} else if _, ok := data.(*lua.LTable); !ok {
-		return fmt.Errorf("value type mismatched")
+		return fmt.Errorf("%v is not a table", fmt.Sprintf("Data.%v", name))
 	}
 	d.data = d.decode(data)
 	d.name = name

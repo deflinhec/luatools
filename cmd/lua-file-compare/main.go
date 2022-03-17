@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"future.net.co.luatools/pkg/luatools"
+	luatools "github.com/deflinhec/luatools"
 	"github.com/jessevdk/go-flags"
 )
 
