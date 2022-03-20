@@ -46,7 +46,7 @@ func (d *DataPrettify) Load(filename string) error {
 	name = strings.ReplaceAll(name, filepath.Ext(name), "")
 	name = regexp.MustCompile("[^A-Z|a-z]").ReplaceAllString(name, "")
 	ltable, ok := d.vm.GetGlobal("Data").(*lua.LTable)
-	if ok {
+	if !ok {
 		return fmt.Errorf("global variable %v is not a table", "Data")
 	}
 	data := ltable.RawGet(lua.LString(name))
