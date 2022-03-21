@@ -72,13 +72,11 @@ func (d *DataPrettify) WriteToFile(filename string) error {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool {
-		switch keys[i].(type) {
-		case int:
-			return keys[i].(int) < keys[j].(int)
-		case string:
-			return keys[i].(string) < keys[j].(string)
+		skeys := []string{
+			fmt.Sprint(keys[i]),
+			fmt.Sprint(keys[j]),
 		}
-		return false
+		return skeys[0] < skeys[1]
 	})
 	b := bytes.Buffer{}
 	for _, k := range keys {
