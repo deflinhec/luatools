@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -67,17 +68,11 @@ func (d *DataPrettify) WriteToFile(filename string) error {
 	}
 	defer f.Close()
 	dict := d.data.(map[interface{}]interface{})
-	keys := make([]interface{}, 0, len(dict))
+	keys := make(keySlice, 0, len(dict))
 	for k := range dict {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool {
-		skeys := []string{
-			fmt.Sprint(keys[i]),
-			fmt.Sprint(keys[j]),
-		}
-		return skeys[0] < skeys[1]
-	})
+	sort.Sort(keys)
 	b := bytes.Buffer{}
 	for _, k := range keys {
 		v := dict[k]
@@ -108,6 +103,32 @@ func (d *DataPrettify) isInteger(val float64) bool {
 	return val == float64(int(val))
 }
 
+type keySlice []interface{}
+
+func (x keySlice) Len() int {
+	return len(x)
+}
+
+func (x keySlice) Less(i, j int) bool {
+	if reflect.TypeOf(x[i]) == reflect.TypeOf(x[j]) {
+		switch x[i].(type) {
+		case int:
+			return x[i].(int) < x[j].(int)
+		}
+	}
+	skeys := []string{
+		fmt.Sprint(x[i]),
+		fmt.Sprint(x[j]),
+	}
+	return skeys[0] < skeys[1]
+}
+
+func (x keySlice) Swap(i, j int) {
+	v := x[i]
+	x[i] = x[j]
+	x[j] = v
+}
+
 func (d *DataPrettify) stringify(value interface{}) string {
 	var ctx string
 	switch v := value.(type) {
@@ -126,17 +147,11 @@ func (d *DataPrettify) stringify(value interface{}) string {
 	case map[interface{}]interface{}:
 		tbl := v
 		ctx += "{"
-		keys := make([]interface{}, 0, len(tbl))
+		keys := make(keySlice, 0, len(tbl))
 		for k := range tbl {
 			keys = append(keys, k)
 		}
-		sort.Slice(keys, func(i, j int) bool {
-			skeys := []string{
-				fmt.Sprint(keys[i]),
-				fmt.Sprint(keys[j]),
-			}
-			return skeys[0] < skeys[1]
-		})
+		sort.Sort(keys)
 		if len(keys) > 0 {
 			if len(keys) == keys[len(keys)-1] {
 				for _, k := range keys {
