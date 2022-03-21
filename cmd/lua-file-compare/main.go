@@ -61,11 +61,12 @@ func main() {
 		}
 		log.Printf("比對檔案: %v %v", cmp.Checksums[i], file)
 	}
+	ext := filepath.Ext(opts.LuaFiles[0])
 	name := filepath.Base(opts.LuaFiles[0])
-	name = strings.ReplaceAll(name, filepath.Ext(name), "")
-	name = regexp.MustCompile("[^A-Z|a-z]").ReplaceAllString(name, "")
-	log.Printf("比對 %v ...", name)
-	ret, err := cmp.Equal(name)
+	field := regexp.MustCompile("[^A-Z|a-z]").
+		ReplaceAllString(strings.ReplaceAll(name, ext, ""), "")
+	log.Printf("比對 %v ...", field)
+	ret, err := cmp.Equal(field)
 	if err != nil {
 		log.Fatal(err)
 	}

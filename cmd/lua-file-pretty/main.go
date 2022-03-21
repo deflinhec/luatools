@@ -54,11 +54,12 @@ func main() {
 	}
 	log.Printf("檔案路徑: %v", opts.LuaFile)
 	os.Mkdir("output", os.ModePerm)
+	ext := filepath.Ext(opts.LuaFile)
 	dir := filepath.Dir(opts.LuaFile)
 	name := filepath.Base(opts.LuaFile)
-	name = strings.ReplaceAll(name, filepath.Ext(name), "")
-	name = regexp.MustCompile("[^A-Z|a-z]").ReplaceAllString(name, "")
-	log.Printf("輸出 %v ...", name)
+	field := regexp.MustCompile("[^A-Z|a-z]").
+		ReplaceAllString(strings.ReplaceAll(name, ext, ""), "")
+	log.Printf("輸出 %v ...", field)
 	path := filepath.Join(dir, "output", name)
 	if err := f.WriteToFile(path); err != nil {
 		log.Fatal("檔案輸出失敗 %v", err)

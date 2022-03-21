@@ -62,10 +62,10 @@ func (d *DataPrettify) Load(filename string) error {
 
 func (d *DataPrettify) WriteToFile(filename string) error {
 	f, err := os.Create(filename)
-	defer f.Close()
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	dict := d.data.(map[interface{}]interface{})
 	keys := make([]interface{}, 0, len(dict))
 	for k := range dict {
@@ -99,6 +99,7 @@ func (d *DataPrettify) WriteToFile(filename string) error {
 	f.WriteString("{")
 	f.WriteString(eol)
 	f.Write(d.pretty(b.Bytes()))
+	f.WriteString(eol)
 	f.WriteString("}")
 	return nil
 }
@@ -109,34 +110,32 @@ func (d *DataPrettify) isInteger(val float64) bool {
 
 func (d *DataPrettify) stringify(value interface{}) string {
 	var ctx string
-	switch value.(type) {
+	switch v := value.(type) {
 	case float64:
-		ctx += fmt.Sprintf("%f", value.(float64))
+		ctx += fmt.Sprintf("%f", v)
 	case int64:
-		ctx += fmt.Sprintf("%v", value.(int64))
+		ctx += fmt.Sprintf("%v", v)
 	case bool:
-		if value.(bool) {
+		if v {
 			ctx += "true"
 		} else {
 			ctx += "false"
 		}
 	case string:
-		ctx += fmt.Sprintf("\"%v\"", value.(string))
+		ctx += fmt.Sprintf("\"%v\"", v)
 	case map[interface{}]interface{}:
-		tbl := value.(map[interface{}]interface{})
+		tbl := v
 		ctx += "{"
 		keys := make([]interface{}, 0, len(tbl))
 		for k := range tbl {
 			keys = append(keys, k)
 		}
 		sort.Slice(keys, func(i, j int) bool {
-			switch keys[i].(type) {
-			case int:
-				return keys[i].(int) < keys[j].(int)
-			case string:
-				return keys[i].(string) < keys[j].(string)
+			skeys := []string{
+				fmt.Sprint(keys[i]),
+				fmt.Sprint(keys[j]),
 			}
-			return false
+			return skeys[0] < skeys[1]
 		})
 		if len(keys) > 0 {
 			if len(keys) == keys[len(keys)-1] {
