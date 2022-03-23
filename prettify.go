@@ -43,13 +43,18 @@ func (d *DataPrettify) Load(filename string) error {
 	if err := d.vm.DoString(string(b)); err != nil {
 		return err
 	}
-	name := filepath.Base(filename)
-	name = strings.ReplaceAll(name, filepath.Ext(name), "")
-	name = regexp.MustCompile("[^A-Z|a-z]").ReplaceAllString(name, "")
 	ltable, ok := d.vm.GetGlobal("Data").(*lua.LTable)
 	if !ok {
 		return fmt.Errorf("global variable %v is not a table", "Data")
 	}
+	var name string
+	ltable.ForEach(func(l1, l2 lua.LValue) {
+		key := l1.String()
+		if strings.HasPrefix(key, "_") {
+			return
+		}
+		name = key
+	})
 	data := ltable.RawGet(lua.LString(name))
 	if data == lua.LNil {
 		return fmt.Errorf("%v is nil", fmt.Sprintf("Data.%v", name))

@@ -62,7 +62,7 @@ func main() {
 	log.Printf("輸出 %v ...", field)
 	path := filepath.Join(dir, "output", name)
 	if err := f.WriteToFile(path); err != nil {
-		log.Fatal("檔案輸出失敗 %v", err)
+		log.Fatalf("檔案輸出失敗 %v", err)
 	}
 	log.Printf("輸出路徑: %v", path)
 }
