@@ -16,12 +16,15 @@ import (
 
 type DataComparism struct {
 	vm        *lua.LState
+	values    []lua.LValue
+	Entry     string
 	Checksums []string
 }
 
 func NewDataComparism() *DataComparism {
 	return &DataComparism{
 		Checksums: make([]string, 2),
+		values:    make([]lua.LValue, 2),
 		vm: lua.NewState(lua.Options{
 			MinimizeStackMemory: true,
 		}),
@@ -29,12 +32,10 @@ func NewDataComparism() *DataComparism {
 }
 
 func (c *DataComparism) Load(filenames []string) error {
+	entries := make([]string, 0)
 	const module = `module("Data")`
 	for i, filename := range filenames {
-		abspath, err := filepath.Abs(filename)
-		if err != nil {
-			abspath = filename
-		}
+		abspath, _ := filepath.Abs(filename)
 		b, err := os.ReadFile(abspath)
 		if err != nil {
 			return err
@@ -56,11 +57,35 @@ func (c *DataComparism) Load(filenames []string) error {
 		if err := c.vm.DoString(f.String()); err != nil {
 			return err
 		}
+		data, ok := c.vm.GetGlobal(fmt.Sprintf("Data%v", i)).(*lua.LTable)
+		if !ok {
+			return fmt.Errorf("global variable Data%v is not a table", i)
+		}
+		var entry string
+		data.ForEach(func(l1, l2 lua.LValue) {
+			if strings.HasPrefix(l1.String(), "_") {
+				return
+			} else if len(entry) > 0 {
+				return
+			}
+			entry = l1.String()
+		})
+		if len(entry) == 0 {
+			continue
+		}
+		entries = append(entries, entry)
+		c.values[i] = data.RawGet(lua.LString(entry))
 	}
+	if len(entries) < 2 {
+		return fmt.Errorf("entries is less than two %v", entries)
+	} else if entries[0] != entries[len(entries)-1] {
+		return fmt.Errorf("entries mismatched %v", entries)
+	}
+	c.Entry = entries[len(entries)-1]
 	return nil
 }
 
-func (c *DataComparism) Equal(key string) (bool, error) {
+func (c *DataComparism) Equal() (bool, error) {
 	script := `
 function deepcompare(table1, table2)
 	local avoid_loops = {}
@@ -112,21 +137,11 @@ end
 	if err := c.vm.DoString(script); err != nil {
 		return false, err
 	}
-	field := lua.LString(key)
-	datas := []lua.LValue{
-		c.vm.GetGlobal("Data0").(*lua.LTable).RawGet(field),
-		c.vm.GetGlobal("Data1").(*lua.LTable).RawGet(field),
-	}
-	for _, v := range datas {
-		if v == lua.LNil {
-			return false, errors.New("cannot compare nil value")
-		}
-	}
 	if err := c.vm.CallByParam(lua.P{
 		Fn:      c.vm.GetGlobal("deepcompare"),
 		NRet:    1,
 		Protect: true,
-	}, datas...); err != nil {
+	}, c.values...); err != nil {
 		panic(err)
 	}
 	ret := c.vm.Get(-1)

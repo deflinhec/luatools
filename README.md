@@ -87,5 +87,3 @@ go get -u github.com/deflinhec/luatools
 ![](./image/817f81334d398399f94eba5170308927.png)
 
 - 允許任何開頭符合以上規範的檔案。
-
-- 檔案名稱(不包含副檔名)必須與上圖中第五行一致。

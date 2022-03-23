@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	luatools "github.com/deflinhec/luatools"
 	"github.com/jessevdk/go-flags"
@@ -61,12 +59,8 @@ func main() {
 		}
 		log.Printf("比對檔案: %v %v", cmp.Checksums[i], file)
 	}
-	ext := filepath.Ext(opts.LuaFiles[0])
-	name := filepath.Base(opts.LuaFiles[0])
-	field := regexp.MustCompile("[^A-Z|a-z]").
-		ReplaceAllString(strings.ReplaceAll(name, ext, ""), "")
-	log.Printf("比對 %v ...", field)
-	ret, err := cmp.Equal(field)
+	log.Printf("比對 %v ...", cmp.Entry)
+	ret, err := cmp.Equal()
 	if err != nil {
 		log.Fatal(err)
 	}
